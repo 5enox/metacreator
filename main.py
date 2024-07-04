@@ -1,5 +1,4 @@
 import os
-import shutil
 import threading
 import time
 
@@ -39,8 +38,7 @@ def cleanup_videos_periodically(interval_seconds):
             print(f"Error occurred during cleanup: {e}")
 
 
-@app.on_event("startup")
-def startup_event():
+def startup_delete():
     """
     Event handler to start a separate thread for periodic cleanup of 'videos' directory.
     """
@@ -77,7 +75,7 @@ async def download_video(request: VideoDownloadRequest):
             raise HTTPException(
                 status_code=500, detail="Failed to remove metadata from video")
 
-        return {"download_url": download_url}
+        return {"download_url": downloaded_file_path}
 
     except HTTPException as e:
         raise e
