@@ -4,20 +4,21 @@ import time
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from downloader import get_tiktok_video_download_url, download_file, remove_metadata
+from downloader import TikTokDownloader, InstagramDownloader
 
 app = FastAPI()
 
 
 class VideoDownloadRequest(BaseModel):
     video_url: str
+    platform: str  # 'tiktok' or 'instagram'
 
 
 class VideoDownloadResponse(BaseModel):
     download_url: str
 
 
-def cleanup_videos_periodically(interval_seconds):
+def cleanup_videos_periodically(interval_seconds: int):
     """
     Function to periodically clean up the 'videos' directory by deleting files older than a certain age.
     """
@@ -43,7 +44,6 @@ def startup_delete():
     Event handler to start a separate thread for periodic cleanup of 'videos' directory.
     """
     cleanup_interval_seconds = 3600  # 1 hour
-
     cleanup_thread = threading.Thread(
         target=cleanup_videos_periodically, args=(cleanup_interval_seconds,))
     # Daemonize the thread so it exits when the main process exits
@@ -54,22 +54,29 @@ def startup_delete():
 @app.post("/download-video/", response_model=VideoDownloadResponse)
 async def download_video(request: VideoDownloadRequest):
     try:
-        # Get the TikTok video download URL
-        download_url = get_tiktok_video_download_url(request.video_url)
+        if request.platform.lower() == 'tiktok':
+            downloader = TikTokDownloader()
+        elif request.platform.lower() == 'instagram':
+            downloader = InstagramDownloader()
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported platform")
+
+        # Get the video download URL
+        download_url = downloader.get_download_url(request.video_url)
 
         if not download_url:
             raise HTTPException(
-                status_code=400, detail="Failed to get download URL from TikTok")
+                status_code=400, detail="Failed to get download URL")
 
         # Download the video
-        downloaded_file_path = download_file(download_url)
+        downloaded_file_path = downloader.download_file(download_url)
 
         if not downloaded_file_path:
             raise HTTPException(
                 status_code=500, detail="Failed to download video")
 
         # Remove metadata from the downloaded video
-        success = remove_metadata(downloaded_file_path)
+        success = downloader.remove_metadata(downloaded_file_path)
 
         if not success:
             raise HTTPException(
@@ -79,6 +86,5 @@ async def download_video(request: VideoDownloadRequest):
 
     except HTTPException as e:
         raise e
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

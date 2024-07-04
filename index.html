@@ -1,0 +1,63 @@
+<ul class="download-box">
+  <li>
+    <div class="download-items">
+      <div class="download-items__thumb">
+        <img
+          src="https://igcdn.xyz/?token=ba35f68b2af59ab2f129cdebeb226277f54c77d78d9d33297e9fa7a92d765ec7&time=1720130411&file=https%3a%2f%2fscontent.cdninstagram.com%2fv%2ft51.29350-15%2f440953095_1115060513157935_701003097972644616_n.jpg%3fstp%3ddst-jpg_e15_fr_p1080x1080%26_nc_ht%3dscontent-ams4-1.cdninstagram.com%26_nc_cat%3d111%26_nc_ohc%3dZHOdnH4VSnUQ7kNvgGe5e5P%26edm%3dAP_V10EBAAAA%26ccb%3d7-5%26oh%3d00_AYCclNvYsKkDPNBStfKEWybGsGREI-AT_5zO8pd6nriCyw%26oe%3d668C2D2F%26_nc_sid%3d2999b8"
+          alt="igdownloader"
+        />
+        <span class="format-icon"><i class="icon icon-dlvideo"></i></span>
+      </div>
+      <div class="download-items__btn">
+        <a
+          onclick="ga('send', 'event', 'home', 'click_download_video')"
+          href="https://download.i-7-cdn.xyz/ig/1720078211/8e123c82b5d8f8c5d91b8b361d6cd58216917a7fa4c8e4eb488e000f2d20a713?file=aHR0cHM6Ly9zY29udGVudC5jZG5pbnN0YWdyYW0uY29tL28xL3YvdDE2L2YyL202OS9Bbl9jSkoydW9jckg4aUxHUW40dmFkWE1PRmdpWGlqVU1YS1dxdm5ZMjlrTTZHQzVtRVdoTmpmOG1FOURPeHhDdGEyM1E5VjIyQXFPUUpVbk9ReU56OE0ubXA0P2VmZz1leUp4WlY5bmNtOTFjSE1pT2lKYlhDSnBaMTkzWldKZlpHVnNhWFpsY25sZmRuUnpYMjkwWmx3aVhTSXNJblpsYm1OdlpHVmZkR0ZuSWpvaWRuUnpYM1p2WkY5MWNteG5aVzR1WTJ4cGNITXVZekl1TVRBNE1DNWlZWE5sYkdsdVpTSjkmX25jX2h0PXNjb250ZW50LWFtczItMS5jZG5pbnN0YWdyYW0uY29tJl9uY19jYXQ9MTA1JnZzPTY4NDkyMTkyMzY5NzcyOF8zNjcxMjY5MDgzJl9uY192cz1IQmtzRlFJWU9uQmhjM04wYUhKdmRXZG9YMlYyWlhKemRHOXlaUzlIUkc5Rk5sRkpRbWQ0Umtoa2FrRkZRVXhSWTFoaFIybGhlV1JuWW5CU01VRkJRVVlWQUFMSUFRQVZBaGc2Y0dGemMzUm9jbTkxWjJoZlpYWmxjbk4wYjNKbEwwZExZbWhHUWs1T1pDMTZlazVXYTBkQlVGcDZORlpCTUZGTlpFaGljRkl4UVVGQlJoVUNBc2dCQUNnQUdBQWJBQlVBQUNiTW5KQ2pxbzJJUUJVQ0tBSkRNeXdYUURFUTVXQkJpVGNZRm1SaGMyaGZZbUZ6Wld4cGJtVmZNVEE0TUhCZmRqRVJBSFglMkJCd0ElM0QmY2NiPTktNCZvaD0wMF9BWURXdUtyRFFCZjRxX084V1VXckdFdWNhdUx2cGwtNGJZT1R3Q3RQOTFoeUZ3Jm9lPTY2ODgzRDE1Jl9uY19zaWQ9Mjk5OWI4Jm5hbWU9SUdEb3dubG9hZGVyLkFwcF8zMzU3NDkzMTczNjUxNDAxNjM2Lm1wNA"
+          class="abutton is-success is-fullwidth btn-premium mt-3"
+          rel="nofollow"
+          title="Download Video"
+          ><span
+            ><i class="icon icon-download"></i><span>Download Video</span></span
+          ></a
+        >
+      </div>
+    </div>
+  </li>
+</ul>
+<div class="row back-home">
+  <a
+    href="https://play.google.com/store/apps/details?id=saveinsta.download.video.instagram.photo.reels.story"
+    class="btn-secondary is-fullwidth mt-3 btn-download-app center"
+  >
+    Download with SaveInsta app
+  </a>
+  <a
+    onclick="sendEvent('click_back_home')"
+    href="/"
+    class="btn-secondary is-fullwidth mt-3"
+    title="Download other video"
+  >
+    <span class="span-icon">
+      <i class="icon icon-back"></i>
+      <span> Download other video </span>
+    </span>
+  </a>
+</div>
+<script>
+  const imgElements = document.querySelectorAll("img[data-src]");
+
+  const lazyLoadingImage = (entries, observer) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.src = entry.target.dataset.src;
+      entry.target.addEventListener("load", () => {
+        entry.target.classList.remove("lazy");
+        observer.unobserve(entry.target);
+      });
+      console.log("Called");
+    });
+  };
+  const lazyLoadingObserver = new IntersectionObserver(lazyLoadingImage, {
+    threshold: 0.9,
+  });
+  imgElements.forEach((img) => lazyLoadingObserver.observe(img));
+</script>
