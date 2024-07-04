@@ -3,7 +3,7 @@ import shutil
 import threading
 import time
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from downloader import get_tiktok_video_download_url, download_file, remove_metadata
 
