@@ -1,14 +1,18 @@
-from abc import ABC, abstractmethod
 import os
 import re
-import requests
+import hashlib
 import uuid
-import wget
-from hachoir.parser import createParser
-from hachoir.metadata import extractMetadata
-import subprocess
+import tempfile
 import pathlib
-from typing import Optional
+
+from abc import ABC, abstractmethod
+from typing import Union, Optional
+
+import requests
+import wget
+import ffmpeg
+from moviepy.editor import VideoFileClip
+from moviepy.video.fx import colorx
 
 
 class VideoDownloader(ABC):
@@ -43,7 +47,7 @@ class VideoDownloader(ABC):
             print(f"Failed to download video from {url}: {e}")
             return None
 
-    def remove_metadata(self, video_path: str) -> bool:
+    def adjust(self, video_path: str) -> Union[str, None]:
         """
         Removes metadata from a video file using ffmpeg.
 
@@ -54,19 +58,41 @@ class VideoDownloader(ABC):
         - bool: True if metadata removal was successful, False otherwise.
         """
         try:
-            parser = createParser(video_path)
-            metadata = extractMetadata(parser)
+            # Create a temporary file to store the intermediate video
+            temp_file = tempfile.NamedTemporaryFile(
+                delete=False, suffix='.mp4').name
 
-            if metadata is not None:
-                for line in metadata.exportPlaintext():
-                    if line.startswith("Metadata:"):
-                        os.system(
-                            f"exiftool -{line.split(':')[1].split(' ')[1]}={line.split(':')[1].split(' ')[2]}")
-                        return True
-            return True
+            # Step 1: Clean Metadata
+            ffmpeg.input(video_path).output(temp_file, map_metadata=-1,
+                                            c='copy').run(quiet=True, overwrite_output=True)
+
+            # Step 2: Change MD5 Hash (by modifying the video content slightly, here we add 5% saturation)
+            with VideoFileClip(temp_file) as clip:
+                new_clip = clip.fx(colorx, factor=1.05)
+                final_temp_file = tempfile.NamedTemporaryFile(
+                    delete=False, suffix='.mp4').name
+                new_clip.write_videofile(
+                    final_temp_file, codec='libx264', audio_codec='aac', logger=None)
+
+            # Step 3: Compute and change MD5 hash
+            with open(final_temp_file, 'rb') as f:
+                file_content = f.read()
+                md5_hash = hashlib.md5(file_content).hexdigest()
+
+            new_path = f"{os.path.splitext(video_path)[0]}_modified.mp4"
+            os.rename(final_temp_file, new_path)
+
+            # Clean up temporary file
+            os.remove(temp_file)
+
+            return new_path
+
+        except ffmpeg.Error as e:
+            print(f"FFmpeg error: {e}")
         except Exception as e:
-            print(f"Failed to remove metadata: {e}")
-            return False
+            print(f"An error occurred: {e}")
+
+        return None
 
 
 class TikTokDownloader(VideoDownloader):
@@ -123,10 +149,3 @@ class InstagramDownloader(VideoDownloader):
         except Exception as e:
             print(f"Error extracting download URL: {e}")
             return None
-
-
-insta = InstagramDownloader()
-res = insta.get_download_url(
-    "https://www.instagram.com/reel/C3EapZMoTOI/?utm_source=ig_web_copy_link")
-if res is not None:
-    insta.download_file(res)

@@ -73,10 +73,10 @@ async def download_video(request: VideoDownloadRequest):
 
         if not downloaded_file_path:
             raise HTTPException(
-                status_code=500, detail="Failed to download video")
+                status_code=500, detail="Failed to download video or video does not exist")
 
         # Remove metadata from the downloaded video
-        success = downloader.remove_metadata(downloaded_file_path)
+        success = downloader.adjust(downloaded_file_path)
 
         if not success:
             raise HTTPException(
