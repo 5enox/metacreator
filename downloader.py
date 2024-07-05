@@ -123,3 +123,10 @@ class InstagramDownloader(VideoDownloader):
         except Exception as e:
             print(f"Error extracting download URL: {e}")
             return None
+
+
+insta = InstagramDownloader()
+res = insta.get_download_url(
+    "https://www.instagram.com/reel/C3EapZMoTOI/?utm_source=ig_web_copy_link")
+if res is not None:
+    insta.download_file(res)
