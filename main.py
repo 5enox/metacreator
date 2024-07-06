@@ -5,12 +5,13 @@ import time
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from downloader import TikTokDownloader, InstagramDownloader
-from fastapi import FastAPI, File, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pathlib import Path
 
 
 app = FastAPI()
+
 
 # Defining the directory where downloaded videos will be stored
 files_directory = Path("videos")
