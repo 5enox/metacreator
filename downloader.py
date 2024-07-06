@@ -75,8 +75,6 @@ class VideoDownloader(ABC):
             final_temp_file = tempfile.NamedTemporaryFile(
                 delete=False, suffix='.mp4').name
             new_clip.write_videofile(final_temp_file)
-            print(f"Video with increased saturation saved to: {
-                  final_temp_file}")
 
             # Step 3: Compute and change MD5 hash
             with open(final_temp_file, 'rb') as f:

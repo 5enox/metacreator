@@ -41,8 +41,8 @@ def cleanup_videos_periodically(interval_seconds: int):
                     file_age_seconds = now - os.path.getmtime(file_path)
                     if file_age_seconds > interval_seconds:
                         os.remove(file_path)
-                        print(f"Deleted file '{filename}' in '{
-                              directory}' (age: {file_age_seconds:.1f} seconds).")
+                        print(f"Deleted file '{filename}'")
+                        print(f"File age: {file_age_seconds} seconds")
             time.sleep(interval_seconds)
         except Exception as e:
             print(f"Error occurred during cleanup: {e}")
