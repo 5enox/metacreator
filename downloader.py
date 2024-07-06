@@ -2,26 +2,27 @@ import os
 import re
 import hashlib
 import uuid
-import tempfile
 import pathlib
-
-from abc import ABC, abstractmethod
+import subprocess
+import tempfile
 from typing import Union, Optional
 
 import requests
 import wget
 import ffmpeg
 from moviepy.editor import VideoFileClip
-from moviepy.video.fx import colorx
+from moviepy.video.fx.colorx import colorx
+from abc import ABC, abstractmethod
 
 
 class VideoDownloader(ABC):
-
-    @abstractmethod
-    def get_download_url(self, video_url: str) -> Optional[str]:
+    class VideoDownloader(ABC):
+        @abstractmethod
+        def get_download_url(self, video_url: str) -> Optional[str]:
+            pass
         pass
 
-    def download_file(self, url: str) -> Optional[str]:
+    def download_file(self, url: str) -> Optional[list]:
         """
         Downloads a file from the given URL and saves it.
 
@@ -42,50 +43,65 @@ class VideoDownloader(ABC):
             wget.download(url, out=video_path)
 
             # Return the full path of the downloaded file
-            return os.path.abspath(video_path)
+            return [os.path.abspath(video_path), filename]
         except Exception as e:
             print(f"Failed to download video from {url}: {e}")
             return None
 
-    def adjust(self, video_path: str) -> Union[str, None]:
-        """
-        Removes metadata from a video file using ffmpeg.
-
-        Args:
-        - video_path (str): Path to the video file.
-
-        Returns:
-        - bool: True if metadata removal was successful, False otherwise.
-        """
+    def adjust(self, video_path: str, saturation: float) -> Union[bool, None]:
         try:
-            # Create a temporary file to store the intermediate video
-            temp_file = tempfile.NamedTemporaryFile(
-                delete=False, suffix='.mp4').name
+            # Check if ffmpeg is installed
+            try:
+                subprocess.run(["ffmpeg", "-version"],
+                               check=True, capture_output=True)
+            except FileNotFoundError:
+                raise RuntimeError(
+                    "ffmpeg is not installed or not found in the system path.")
 
             # Step 1: Clean Metadata
-            ffmpeg.input(video_path).output(temp_file, map_metadata=-1,
-                                            c='copy').run(quiet=True, overwrite_output=True)
+            temp_file = tempfile.NamedTemporaryFile(
+                delete=False, suffix='.mp4').name
+            ffmpeg_cmd = (
+                ffmpeg
+                .input(video_path)
+                .output(temp_file, map_metadata=-1, c='copy')
+            )
+            ffmpeg_cmd.run(quiet=True, overwrite_output=True)
+            print(f"Metadata cleaned and saved to: {temp_file}")
 
             # Step 2: Change MD5 Hash (by modifying the video content slightly, here we add 5% saturation)
-            with VideoFileClip(temp_file) as clip:
-                new_clip = clip.fx(colorx, factor=1.05)
-                final_temp_file = tempfile.NamedTemporaryFile(
-                    delete=False, suffix='.mp4').name
-                new_clip.write_videofile(
-                    final_temp_file, codec='libx264', audio_codec='aac', logger=None)
+            clip = VideoFileClip(temp_file)
+            new_clip = clip.fx(colorx, saturation)
+            final_temp_file = tempfile.NamedTemporaryFile(
+                delete=False, suffix='.mp4').name
+            new_clip.write_videofile(final_temp_file)
+            print(f"Video with increased saturation saved to: {
+                  final_temp_file}")
 
             # Step 3: Compute and change MD5 hash
             with open(final_temp_file, 'rb') as f:
                 file_content = f.read()
                 md5_hash = hashlib.md5(file_content).hexdigest()
+                print(f"MD5 Hash of the modified video: {md5_hash}")
 
-            new_path = f"{os.path.splitext(video_path)[0]}_modified.mp4"
+            # Get original file name without extension
+            original_filename = os.path.splitext(
+                os.path.basename(video_path))[0]
+
+            # Rename the modified file to include the original file's name
+            new_path = f"videos/{original_filename}.mp4"
+            os.remove(video_path)
             os.rename(final_temp_file, new_path)
+            print(f"Final video saved to: {new_path}")
 
-            # Clean up temporary file
+            # Clean up temporary files
             os.remove(temp_file)
 
-            return new_path
+            # Delete the original video file
+
+            print(f"Deleted original video: {video_path}")
+
+            return True
 
         except ffmpeg.Error as e:
             print(f"FFmpeg error: {e}")
