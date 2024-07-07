@@ -2,8 +2,8 @@
 FROM python:3.9-slim
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Set the working directory in the container
 WORKDIR /app
@@ -26,4 +26,4 @@ COPY . .
 EXPOSE 8000
 
 # Command to run the FastAPI server within the container
-CMD ["uvicorn", "main:app", "--host", "167.99.254.37", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
