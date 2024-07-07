@@ -105,7 +105,8 @@ async def download_video(request: VideoDownloadRequest):
         download_link = construct_download_link(filename)
         # Remove the last 4 characters (".mp4") from the download link
         download_link = download_link[:-4]
-
+        server_address = "http://api.5nx.tech"
+        download_link = server_address + download_link
         return {"download_url": download_link}
 
     except HTTPException as e:
