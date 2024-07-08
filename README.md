@@ -17,13 +17,20 @@ This project provides a service to download and adjust videos from TikTok and In
 - Docker
 - Docker Compose
 
+Install Docker and Docker-compose If you don't have them
+
+  ```sh
+    curl -fsSL https://get.docker.com | sh && sudo apt-get install -y docker-compose
+
+  ```
+
 ### Steps
 
 1. Clone the repository:
 
     ```sh
-    git clone https://github.com/yourusername/video-download-service.git
-    cd video-download-service
+    git clone [https://github.com/yourusername/video-download-service.git](https://github.com/5enox/metacreator.git)
+    cd metacreator
     ```
 
 2. Build and start the containers:
@@ -67,6 +74,6 @@ This project provides a service to download and adjust videos from TikTok and In
 
 Feel free to open issues and submit pull requests. We welcome contributions to improve this project.
 
-## License
+## Developmnt
 
-This project is licensed under the MIT License.
+This service was entirely developed by me, and I'm working on adding more platforms
