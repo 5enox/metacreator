@@ -29,14 +29,14 @@ Install Docker and Docker-compose If you don't have them
 1. Clone the repository:
 
     ```sh
-    git clone https://github.com/yourusername/video-download-service.git
+    git clone https://github.com/5enox/metacreator.git
     cd metacreator
     ```
 
 2. Build and start the containers:
 
     ```sh
-    docker compose up --build
+    docker compose up --build -d # to run both containers in detached mode
     ```
 
 3. The service will be available at `http://localhost`.
