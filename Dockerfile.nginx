@@ -1,14 +1,14 @@
-# Dockerfile
 FROM nginx:alpine
 
 # Copy the Nginx config file into the container
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy your application files if needed
-# COPY . /usr/share/nginx/html
+# Copy your SSL certificate and private key
+COPY cert/server.csr /etc/ssl/certs/server.crt
+COPY cert/server.key /etc/ssl/private/server.key
 
-# Expose port 80
-EXPOSE 80
+# Expose port 80 and 443
+EXPOSE 80 443
 
 # Start Nginx
 CMD ["nginx", "-g", "daemon off;"]

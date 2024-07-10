@@ -9,6 +9,7 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
+    container_name: fastapi
 
   nginx:
     build:
@@ -18,3 +19,4 @@ services:
       - "80:80"
     depends_on:
       - fastapi
+    container_name: nginx
