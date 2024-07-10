@@ -2,12 +2,20 @@ version: '3.8'
 
 services:
   fastapi:
-    image: 5enox/metacreator:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - nginx
 
   nginx:
-    image: 5enox/nginx:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
     ports:
       - "80:80"
     depends_on:
