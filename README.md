@@ -36,7 +36,7 @@ Install Docker and Docker-compose If you don't have them
 2. Build and start the containers:
 
     ```sh
-    docker-compose up --build
+    docker compose up --build
     ```
 
 3. The service will be available at `http://localhost`.
