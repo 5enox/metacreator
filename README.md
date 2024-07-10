@@ -29,7 +29,7 @@ Install Docker and Docker-compose If you don't have them
 1. Clone the repository:
 
     ```sh
-    git clone https://github.com/yourusername/video-download-service.git
+    git clone https://github.com/5enox/metacreator.git
     cd metacreator
     ```
 
