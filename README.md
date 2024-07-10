@@ -36,7 +36,7 @@ Install Docker and Docker-compose If you don't have them
 2. Build and start the containers:
 
     ```sh
-    docker compose up --build
+    docker compose up --build -d # to run both containers in detached mode
     ```
 
 3. The service will be available at `http://localhost`.
