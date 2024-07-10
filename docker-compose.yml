@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  fastapi:
+    image: 5enox/metacreator:latest
+    ports:
+      - "8000:8000"
+
+  nginx:
+    image: 5enox/nginx:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - fastapi

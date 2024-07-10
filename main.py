@@ -1,4 +1,5 @@
 import os
+from sysconfig import get_platform
 import threading
 import time
 
@@ -17,10 +18,9 @@ app = FastAPI()
 files_directory = Path("videos")
 
 
-class VideoDownloadRequest(BaseModel):
-    video_url: str
-    saturation: float
-    platform: str  # 'tiktok' or 'instagram'
+# class VideoDownloadRequest(BaseModel):
+#     video_url: str
+#     platform: str  # 'tiktok' or 'instagram'
 
 
 class VideoDownloadResponse(BaseModel):
@@ -48,6 +48,18 @@ def cleanup_videos_periodically(interval_seconds: int):
             print(f"Error occurred during cleanup: {e}")
 
 
+def get_platform(platform: str) -> str:
+    """
+    Function to get the platform name from the input string.
+    """
+    if 'tiktok' in platform:
+        return 'tiktok'
+    elif 'instagram' in platform:
+        return 'instagram'
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported platform")
+
+
 def startup_delete():
     """
     Event handler to start a separate thread for periodic cleanup of 'videos' directory.
@@ -64,30 +76,32 @@ def construct_download_link(filename: str) -> str:
     """
     Event handler to start a separate thread for periodic cleanup of 'videos' directory.
     """
-    return f"/download?key={filename}"
+    # Remove the last 4 characters (".mp4") from the download link
+    download_link = filename[:-4]
+    server_address = "http://178.128.198.151"
+
+    return f"{server_address}/download?key={download_link}"
 
 
-@app.post("/download-video/", response_model=VideoDownloadResponse)
-async def download_video(request: VideoDownloadRequest):
+@ app.get("/download-video/", response_model=VideoDownloadResponse)
+async def download_video(video_url: str, saturation: float = 1.05):
     try:
-        if request.platform.lower() == 'tiktok':
+        platform = get_platform(video_url.lower())
+        if platform == 'tiktok':
             downloader = TikTokDownloader()
-        elif request.platform.lower() == 'instagram':
+        elif platform == 'instagram':
             downloader = InstagramDownloader()
         else:
             raise HTTPException(status_code=400, detail="Unsupported platform")
 
-        saturation = request.saturation if hasattr(
-            request, 'saturation') else 1.1
         # Get the video download URL
-        download_url = downloader.get_download_url(request.video_url)
+        download_url = downloader.get_download_url(video_url)
 
         if not download_url:
             raise HTTPException(
                 status_code=400, detail="Failed to get download URL")
 
         # Download the video
-
         downloaded_file_path, filename = downloader.download_file(
             download_url)
 
@@ -103,10 +117,7 @@ async def download_video(request: VideoDownloadRequest):
                 status_code=500, detail="Failed to remove metadata from video")
 
         download_link = construct_download_link(filename)
-        # Remove the last 4 characters (".mp4") from the download link
-        download_link = download_link[:-4]
-        server_address = "http://api.5nx.tech"
-        download_link = server_address + download_link
+
         return {"download_url": download_link}
 
     except HTTPException as e:
@@ -115,7 +126,7 @@ async def download_video(request: VideoDownloadRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/download/")
+@ app.get("/download/")
 async def download_file(key: str):
     file_path = files_directory / (key + ".mp4")
     if not file_path.exists():
