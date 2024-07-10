@@ -48,7 +48,7 @@ class VideoDownloader(ABC):
             print(f"Failed to download video from {url}: {e}")
             return None
 
-    def adjust(self, video_path: str, saturation: float) -> Union[bool, None]:
+    def adjust(self, video_path: str, saturation: float) -> Union[bool, None, str]:
         try:
             # Check if ffmpeg is installed
             try:
@@ -102,11 +102,11 @@ class VideoDownloader(ABC):
             return True
 
         except ffmpeg.Error as e:
-            print(f"FFmpeg error: {e}")
+            return f"FFmpeg error: {e}"
         except Exception as e:
-            print(f"An error occurred: {e}")
+            return f"An error occurred: {e}"
 
-        return None
+        return "Error in adjusting the video"
 
 
 class TikTokDownloader(VideoDownloader):

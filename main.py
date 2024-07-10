@@ -2,16 +2,32 @@ import os
 from sysconfig import get_platform
 import threading
 import time
+import urllib.parse as parse
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from downloader import TikTokDownloader, InstagramDownloader
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 
 
 app = FastAPI()
+
+origins = [
+    "https://www.phantomclip.com/"  # Replace with your allowed domain
+    , "https://phantomclip.com/"
+]
+
+# Define the CORS policy
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins='*',
+    allow_methods=["GET", "POST"],  # Add more HTTP methods as needed
+    allow_headers=["*"],  # You can also specify headers explicitly
+)
 
 
 # Defining the directory where downloaded videos will be stored
@@ -78,9 +94,18 @@ def construct_download_link(filename: str) -> str:
     """
     # Remove the last 4 characters (".mp4") from the download link
     download_link = filename[:-4]
-    server_address = "http://178.128.198.151"
+    server_address = "https://souqzone.xyz"
 
     return f"{server_address}/download?key={download_link}"
+
+
+def clean_url(video_url: str) -> str:
+    """
+    Function to clean the video URL by decoding URL encoding and replacing special characters.
+    """
+    decoded_url = parse.unquote(video_url)
+    cleaned_url = decoded_url.replace('%3A', ':').replace('%2F', '/')
+    return cleaned_url
 
 
 @ app.get("/download-video/", response_model=VideoDownloadResponse)
@@ -95,6 +120,7 @@ async def download_video(video_url: str, saturation: float = 1.05):
             raise HTTPException(status_code=400, detail="Unsupported platform")
 
         # Get the video download URL
+        video_url = clean_url(video_url)
         download_url = downloader.get_download_url(video_url)
 
         if not download_url:
@@ -131,4 +157,11 @@ async def download_file(key: str):
     file_path = files_directory / (key + ".mp4")
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
-    return FileResponse(path=file_path, filename=key, media_type="video/mp4")
+    return FileResponse(
+        path=file_path,
+        filename=key + ".mp4",
+        media_type="video/mp4",
+        headers={
+            "Content-Disposition": f"attachment; filename={key}.mp4"
+        }
+    )

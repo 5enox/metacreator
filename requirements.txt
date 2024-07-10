@@ -4,3 +4,4 @@ requests
 wget
 ffmpeg-python
 moviepy
+starlette
