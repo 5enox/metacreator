@@ -5,3 +5,6 @@ wget
 ffmpeg-python
 moviepy
 starlette
+instaloader
+bs4
+boto3

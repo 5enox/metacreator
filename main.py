@@ -1,5 +1,5 @@
+from urllib.parse import urlparse, urlunparse
 import os
-from sysconfig import get_platform
 import threading
 import time
 import urllib.parse as parse
@@ -12,6 +12,7 @@ from fastapi.responses import FileResponse
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
+from boto import construct_download_link
 
 
 app = FastAPI()
@@ -88,15 +89,14 @@ def startup_delete():
     cleanup_thread.start()
 
 
-def construct_download_link(filename: str) -> str:
+def upload_to_bucket(filename: str) -> str:
     """
     Event handler to start a separate thread for periodic cleanup of 'videos' directory.
     """
-    # Remove the last 4 characters (".mp4") from the download link
-    download_link = filename[:-4]
-    server_address = "https://souqzone.xyz"
-
-    return f"{server_address}/download?key={download_link}"
+    file = f'{files_directory}/{filename}'
+    print(f"Uploading file '{file}' to DigitalOcean Space")
+    download_link = construct_download_link(file)
+    return download_link
 
 
 def clean_url(video_url: str) -> str:
@@ -108,10 +108,17 @@ def clean_url(video_url: str) -> str:
     return cleaned_url
 
 
-@ app.get("/download-video/", response_model=VideoDownloadResponse)
+def remove_query_args(url):
+    parsed_url = urlparse(url)
+    cleaned_url = urlunparse(parsed_url._replace(query=""))
+    return cleaned_url
+
+
+@app.get("/download-video/", response_model=VideoDownloadResponse)
 async def download_video(video_url: str, saturation: float = 1.05):
     try:
-        platform = get_platform(video_url.lower())
+        cleaned_url = remove_query_args(video_url)
+        platform = get_platform(str(cleaned_url.lower()))
         if platform == 'tiktok':
             downloader = TikTokDownloader()
         elif platform == 'instagram':
@@ -120,7 +127,6 @@ async def download_video(video_url: str, saturation: float = 1.05):
             raise HTTPException(status_code=400, detail="Unsupported platform")
 
         # Get the video download URL
-        video_url = clean_url(video_url)
         download_url = downloader.get_download_url(video_url)
 
         if not download_url:
@@ -129,20 +135,22 @@ async def download_video(video_url: str, saturation: float = 1.05):
 
         # Download the video
         downloaded_file_path, filename = downloader.download_file(
-            download_url)
+            download_url, platform)
 
         if not downloaded_file_path:
             raise HTTPException(
                 status_code=500, detail="Failed to download video or video does not exist")
 
         # Remove metadata from the downloaded video
-        success = downloader.adjust(downloaded_file_path, saturation)
+        print(f"Adjusting video saturation to {saturation}")
+        print(f"Downloaded file path: {downloaded_file_path}")
+        success = await downloader.adjust(downloaded_file_path, saturation)
 
         if not success:
             raise HTTPException(
                 status_code=500, detail="Failed to remove metadata from video")
 
-        download_link = construct_download_link(filename)
+        download_link = upload_to_bucket(filename)
 
         return {"download_url": download_link}
 
